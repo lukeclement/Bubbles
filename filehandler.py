@@ -70,7 +70,8 @@ def extract_data(simulation_name: str, series_size: int):
     files = glob.glob("{}/boundaries_*.dat".format(path))
     frames = len(files)
 
-    bubbles_data = []
+    bubbles_data_xy = []
+    bubbles_data_phase = []
     LOG.info("Extracting data for %s - %d frames", simulation_name, frames)
     for i in range(0, frames):
         LOG.debug("Reading frame {}/{}".format(i, frames))
@@ -81,7 +82,8 @@ def extract_data(simulation_name: str, series_size: int):
             y = y[::-1]
         LOG.debug("Fitting frame {}/{}".format(i, frames))
         popt_x, popt_y, _, _ = process.get_fit(x, y, series_size)
-        bubbles_data.append([x, y, popt_x, popt_y])
+        bubbles_data_xy.append([x, y])
+        bubbles_data_phase.append([popt_x, popt_y])
 
-    return bubbles_data
+    return bubbles_data_xy, bubbles_data_phase
 

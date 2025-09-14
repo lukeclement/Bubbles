@@ -23,45 +23,35 @@ with open('LoggerConfig.json') as f:
 
 def main():
     simulations = glob.glob("Simulation_data/Simulation_data/*")
-    series_size = 20
-    sample_size = 20
-    simulation_to_name = {
-        "Example_Simulation": "A",
-        "r0.54eps18.4": "B",
-        "r0.54eps18.6": "C",
-        "r0.54eps18.7": "D",
-        "r0.54eps18.8": "E",
-        "r0.54eps18.9": "F",
-        "r0.54eps18.43": "G",
-        "r0.54eps18.65": "H",
-        "r0.54eps18.75": "I",
-        "r0.54eps18.95": "J",
-        "r0.54eps18.625": "K",
-        "r0.54eps18.925": "L",
-        "r0.54eps19.0": "M",
-        "r0.54eps19.1": "N",
-        "r0.54eps19.5": "O",
-        "r0.54eps19.25": "P"
-    }
-
+    processed = glob.glob("Simulation_data/Simulation_data_processed/phase/*")
+    processed_names = []
+    for p in processed:
+        processed_names.append(p[48:-4])
+    series_size = 10
 
     logging.info("Starting to process simulations...")
-    for simulation in simulations[-1:]:
+    for simulation in simulations:
         simulation_name = simulation[32:]
-        start = time.time()
-        bubbles_data = fh.extract_data(simulation_name, series_size)
-        end = time.time()
+        file = "Simulation_data/Simulation_data_processed/phase/" + simulation_name
+        if simulation_name not in processed_names:
 
-        #TODO: saving bubbles
+            start = time.time()
+            bubbles_data_xy, bubbles_data_phase = fh.extract_data(simulation_name, series_size)
+            end = time.time()
 
-        for i in range(500, 610, 10):
-            investigate_bubble(bubbles_data, sample_size, series_size, i)
+            y_average_final = np.average(bubbles_data_xy[-1][1])
+            time_taken = end - start
+            time_per_frame = time_taken / len(bubbles_data_xy)
+            logging.info("Done! Final y average was {}, took {:.2f}s ({:.0f}ms per frame)"
+                         .format(y_average_final, time_taken, time_per_frame * 1000))
 
-        y_average_final = np.average(bubbles_data[-1][1])
-        time_taken = end - start
-        time_per_frame = time_taken / len(bubbles_data)
-        logging.info("Done! Final y average was {}, took {:.2f}s ({:.0f}ms per frame)"
-                     .format(y_average_final, time_taken, time_per_frame * 1000))\
+            logging.info(np.shape(bubbles_data_phase))
+            logging.debug("Saving " + file)
+            np.save(file, np.asarray(bubbles_data_phase))
+        else:
+            logging.info("Reading from file " + file)
+            bubbles_data_phase = np.fromfile(file + ".npy")
+
 
 
 
